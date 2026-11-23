@@ -1,0 +1,16 @@
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+__pycache__/
+*.pyc
+*.swp
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Run outputs and local credentials
+results/
+kaggle.json
+.env

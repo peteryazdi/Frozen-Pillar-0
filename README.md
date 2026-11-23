@@ -6,27 +6,11 @@ compares classifiers on top of those vectors.
 Two data sources are supported. Both produce the same output format, so the
 second stage reads either one without modification.
 
----
+This was the first stage of an AI platform for radiologists, now being developed
+with Dr. Philip Edgcumbe and Armin Saghafian, continuing earlier work by
+Dr. Sara Hosseinirad.
 
-## Contents
-
-1. [What this does](#1-what-this-does)
-2. [Why it is built this way](#2-why-it-is-built-this-way)
-3. [The two paths](#3-the-two-paths)
-4. [Folder layout](#4-folder-layout)
-5. [One-time setup](#5-one-time-setup)
-6. [Path A: CT-RATE on Colab](#6-path-a-ct-rate-on-colab)
-7. [Path B: RSNA on Kaggle](#7-path-b-rsna-on-kaggle)
-8. [Building an encode list for Path B](#8-building-an-encode-list-for-path-b)
-9. [Running Part 2](#9-running-part-2)
-10. [Reading the results](#10-reading-the-results)
-11. [Troubleshooting](#11-troubleshooting)
-12. [Scope and limitations](#12-scope-and-limitations)
-13. [Reference](#13-reference)
-
----
-
-## 1. What this does
+## What this does
 
 A chest CT is roughly 512 x 512 x 300 voxels, about 78 million numbers.
 Pillar-0, an open foundation model trained on large volumes of chest CT paired
@@ -45,9 +29,7 @@ The encoder is **frozen**: its weights are never modified. It acts as a fixed
 translator from images to numbers. All learning happens in the small classifier
 trained afterwards.
 
----
-
-## 2. Why it is built this way
+## Why it is built this way
 
 **The two stages are separated because their costs differ by orders of
 magnitude.** Encoding 956 scans takes about three hours on a GPU. Training a
@@ -74,9 +56,7 @@ in Path A) and `orig_depth` (slice count before padding). Part 2 uses both where
 present. Because the contract is a plain CSV, a different encoder can be
 substituted by regenerating the file and changing nothing downstream.
 
----
-
-## 3. The two paths
+## The two paths
 
 | | Path A | Path B |
 |---|---|---|
@@ -101,39 +81,7 @@ Google Drive (15 GB free) and any laptop. Kaggle pre-mounts the competition data
 at `/kaggle/input`, so the download cost is zero. The AWS Open Data mirror is a
 single zip behind controlled access and is not usable for per-study streaming.
 
----
-
-## 4. Folder layout
-
-```
-frozen_pillar-0/
-├── README.md
-├── Part1_Pillar0_Embeddings_to_CSV.ipynb     upload to Colab or Kaggle
-├── Part2_Train_and_Compare_Task_Heads.ipynb  run locally
-├── embeddings_pillar0_rsna.csv               Part 1 output, Path B
-├── embeddings_pillar0_ctrate.csv             Part 1 output, Path A
-├── p3_encode_list.csv                        Path B work list
-└── results/                                  one folder per Part 2 run
-    └── 20260728-140312_central-pe_replication_fixed/
-        ├── run_config.json
-        ├── metrics.csv
-        ├── head_comparisons.csv
-        ├── comparison_backbones.csv
-        ├── best_params.json                  grid runs only
-        ├── fig_auc_by_head.png
-        ├── fig_scaling.png
-        └── summary.txt
-```
-
-Part 2 expects the embedding CSV in the same folder as the notebook. Edit
-`CSV_PATH` in Section 1 if it lives elsewhere.
-
-Run folders are named `<timestamp>_<label>_<mode>_<fixed|grid>`, so the settings
-are visible without opening anything. Nothing is ever overwritten.
-
----
-
-## 5. One-time setup
+## One-time setup
 
 **Local environment for Part 2.** Apple Silicon needs a native environment, not
 one running under Rosetta, or conda will hang:
@@ -163,9 +111,7 @@ pip install numpy pandas scikit-learn scipy matplotlib jupyter
    HuggingFace token, and confirm it is attached to the notebook. Never paste a
    token into a cell.
 
----
-
-## 6. Path A: CT-RATE on Colab
+## Path A: CT-RATE on Colab
 
 1. Upload `Part1_Pillar0_Embeddings_to_CSV.ipynb` to Colab.
 2. Runtime > Change runtime type > T4 GPU.
@@ -191,9 +137,7 @@ needs roughly:
 Below about 200 total the interval is wide enough that the result only
 demonstrates the pipeline works.
 
----
-
-## 7. Path B: RSNA on Kaggle
+## Path B: RSNA on Kaggle
 
 1. Create a new Kaggle notebook and paste in the cells from
    `Part1_Pillar0_Embeddings_to_CSV.ipynb`.
@@ -214,9 +158,7 @@ Events.
 To resume a run that was killed at the 12-hour limit, attach the previous
 version's output as an input dataset and point the resume read at it.
 
----
-
-## 8. Building an encode list for Path B
+## Building an encode list for Path B
 
 Path B reads a CSV naming which studies to encode. Columns:
 
@@ -268,9 +210,7 @@ training size trends of other benchmarks for the Google CT Foundation model. Its
 test sets are also 1:3, so training at the prevalence you evaluate at keeps the
 design clean.
 
----
-
-## 9. Running Part 2
+## Running Part 2
 
 ```bash
 conda activate med-imaging
@@ -338,9 +278,7 @@ comparison, and one with `GRID_SEARCH = True, GRID_SPLITS = ["D3"]` to match a
 published protocol. They land in separate folders and neither disturbs the
 other.
 
----
-
-## 10. Reading the results
+## Reading the results
 
 **The heads tie.** Expected, and the informative outcome. If a straight line
 does as well as a neural network, the finding is already linearly separable in
@@ -365,9 +303,7 @@ Section 8 shuffles the training labels and repeats the identical procedure. If
 the real result does not sit far outside the shuffled range, nothing else in the
 notebook means anything.
 
----
-
-## 11. Troubleshooting
+## Troubleshooting
 
 **`Exporter config not found: video_hevc`**
 RAVE resolves exporter configs relative to its package directory, which breaks
@@ -410,9 +346,7 @@ Newer Kaggle mounts nest one level deeper. Use
 The environment was created under Rosetta. Rebuild natively with
 `conda config --set subdir osx-arm64`.
 
----
-
-## 12. Scope and limitations
+## Scope and limitations
 
 **Single site.** Every result here comes from one data source. Embeddings encode
 scanner and protocol characteristics alongside anatomy, so a drop at a second
@@ -435,9 +369,7 @@ air. On CTPA cohorts most studies are padded, since typical coverage is under
 320 mm. `orig_depth` is recorded so this can be checked, and Part 2 tests whether
 depth alone predicts the label.
 
----
-
-## 13. Reference
+## Reference
 
 **Model.** Pillar-0, `YalaLab/Pillar0-ChestCT`. Agrawal et al. 2025,
 arXiv:2511.17803.
@@ -467,3 +399,36 @@ Hanley and McNeil 1982, Radiology 143:29-36, for AUC variance and sample size.
 DeLong et al. 1988, Biometrics 44:837-845, for comparing correlated ROC curves.
 Sun and Xu 2014, IEEE SPL 21:1389-1393, for the fast implementation.
 Holm 1979, Scand J Statist 6:65-70, for multiple-comparison correction.
+
+## Repository layout
+
+```
+Part1_Pillar0_Embeddings_to_CSV.ipynb      CT scans to embeddings, run on Colab or Kaggle with a GPU
+Part2_Train_and_Compare_Task_Heads.ipynb   Embeddings to trained classifiers and metrics, runs on a laptop
+embeddings_pillar0_rsna.csv                Part 1 output for the RSNA cohort (Path B)
+```
+
+Running the notebooks also creates `embeddings_pillar0_ctrate.csv` (Path A),
+`p3_encode_list.csv` (the Path B work list) and a `results/` folder with one
+subfolder per Part 2 run, holding the files listed under What a run produces.
+
+Part 2 expects the embedding CSV in the same folder as the notebook. Edit
+`CSV_PATH` in Section 1 if it lives elsewhere.
+
+Run folders are named `<timestamp>_<label>_<mode>_<fixed|grid>`, so the settings
+are visible without opening anything. Nothing is ever overwritten.
+
+## Getting the files
+
+```bash
+cd ~/Desktop
+git clone https://github.com/peteryazdi/Pillar0_finetuning.git
+```
+
+This works in Terminal on macOS and Linux and in PowerShell on Windows. Part 2
+runs locally after the one-time setup above; Part 1 needs a GPU on Colab or
+Kaggle.
+
+## Author
+
+Peter Yazdi, [peteryazdi@gmail.com](mailto:peteryazdi@gmail.com)

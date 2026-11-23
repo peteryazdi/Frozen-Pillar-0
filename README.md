@@ -422,7 +422,7 @@ are visible without opening anything. Nothing is ever overwritten.
 
 ```bash
 cd ~/Desktop
-git clone https://github.com/peteryazdi/Pillar0_finetuning.git
+git clone https://github.com/peteryazdi/Frozen-Pillar-0.git
 ```
 
 This works in Terminal on macOS and Linux and in PowerShell on Windows. Part 2
